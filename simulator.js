@@ -1,0 +1,129 @@
+require('dotenv').config()
+
+const util = require('./util.js')
+const simevents = require('./sim-events.js')
+const simtarget = require('./sim-target.js')
+const simsource = require('./sim-source.js')
+
+const LAPS = process.env['simulator_number_of_runs'] || -1
+const PRECISION = process.env['simulator_route_precision'] || 5
+const STOPTIME = process.env['simulator_stop_duration'] || 3
+
+let olliroute = null
+let ollistops = []
+let routepath = []
+let trippath = []
+
+simsource.init()
+  .then(geojson => {
+    ollistops = geojson.stops
+    olliroute = geojson.route
+
+    return simtarget.init()
+  })
+  .then(() => {
+    routepath = util.computePath(olliroute, PRECISION)
+    startSimulator()
+  })
+  .catch(err => {
+    console.error(err)
+  })
+
+const sendMessage = msg => {
+  return simtarget.send(msg)
+}
+
+const startSimulator = () => {
+  console.log('Simulator started')
+  runSimStep(0, 0)
+}
+
+const endSimulator = () => {
+  simtarget.close()
+    .then(() => {
+      console.log('Simulator ended')
+      process.exit()
+    })
+    .catch(err => {
+      console.error(err)
+      process.exit(1)
+    })
+}
+
+const runSimStep = (step, run) => {
+  if (step < routepath.length) {
+    let current = routepath[step]
+    let next = current
+    let stopIndex = -1
+
+    if (ollistops.length) {
+      stopIndex = ollistops.findIndex(stop => {
+        return stop[0] === current[0] && stop[1] === current[1]
+      })
+
+      if (stopIndex > -1) {
+        if (stopIndex + 1 >= ollistops.length) {
+          next = ollistops[0]
+        } else {
+          next = ollistops[stopIndex + 1]
+        }
+      }
+    }
+
+    if (step === 0) {
+      trippath = computeTripPath(current, next)
+
+      sendMessage(simevents.tripStart(trippath))
+        .then(() => sendMessage(simevents.geoPosition(current[0], current[1], trippath)))
+        .then(() => util.sleep(500))
+        .then(() => runSimStep(++step, run))
+    } else if (stopIndex > -1) {
+      sendMessage(simevents.geoPosition(current[0], current[1], trippath))
+        .then(() => util.sleep(500))
+        .then(() => sendMessage(simevents.tripEnd(trippath)))
+        .then(() => sendMessage(simevents.doorOpen()))
+        .then(() => util.sleep(STOPTIME * 1000))
+        .then(() => sendMessage(simevents.doorClose()))
+        .then(() => util.sleep(2000))
+        .then(() => {
+          ++step
+          if (step < routepath.length) {
+            trippath = computeTripPath(current, next)
+
+            sendMessage(simevents.tripStart(trippath))
+              .then(() => sendMessage(simevents.geoPosition(current[0], current[1], trippath)))
+              .then(() => util.sleep(50))
+              .then(() => runSimStep(step, run))
+          } else {
+            runSimStep(step, run)
+          }
+        })
+    } else {
+      sendMessage(simevents.geoPosition(current[0], current[1], trippath))
+      util.sleep(400)
+        .then(() => runSimStep(++step, run))
+    }
+  } else if (LAPS < 1 || ++run < LAPS) {
+    runSimStep(0, run)
+  } else {
+    endSimulator()
+  }
+}
+
+const computeTripPath = (origin, dest) => {
+  let originIndex = routepath.findIndex(path => {
+    return path[0] === origin[0] && path[1] === origin[1]
+  })
+
+  let destIndex = routepath.findIndex(path => {
+    return path[0] === dest[0] && path[1] === dest[1]
+  })
+
+  let tripPath = routepath.slice(originIndex, destIndex || undefined)
+
+  if (destIndex === 0) {
+    tripPath.push(routepath[0])
+  }
+
+  return tripPath
+}

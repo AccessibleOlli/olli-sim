@@ -1,0 +1,14 @@
+{
+  "name": "ollie-simulator",
+  "version": "0.0.1",
+  "description": "OlliRevisted simulator",
+  "main": "simulator.js",
+  "scripts": {
+    "start": "node simulator.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "dependencies": {
+    "cloudant": "^1.8.0",
+    "dotenv": "^4.0.0"
+  }
+}
