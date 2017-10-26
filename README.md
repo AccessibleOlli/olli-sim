@@ -1,6 +1,6 @@
 # OlliRevisited Simulator
 
-Simulator for OlliRevisited app
+Simulator for OlliRevisited
 
 ## Prerequisites
 
@@ -9,7 +9,7 @@ Simulator for OlliRevisited app
 ## Quick Start
 
 1. Clone this [repo](https://github.ibm.com/ibm-watson-data-lab/olli-sim)
-1. From terminal, go to root directory of cloned repo
+1. From terminal, go to the root directory of the cloned repo
 1. From terminal, Run command
 
     `npm install`
@@ -30,7 +30,7 @@ The following settings can be configured in the `.env` file:
 * `simulator_route_source` - URL or file path to JSON file containing the route GeoJSON (default: `data/route.json`)
 * `simulator_stops_source` - URL or file path to JSON file containing the stops GeoJSON (default: `data/stops.json`)
 * `simulator_number_of_runs` - number of times the simulator runs through the complete route (default: `-1` which mean infinite)
-* `simulator_route_precision` - when computing points along the route coordiantes how precision should it be. the higher the humber the more points/precision (default: `5`)
+* `simulator_route_precision` - when computing points along the route how precise/frequent should coordinates be calculated. the higher the number the more coordinates (default: `5`)
 * `simulator_stop_duration` - how long (in seconds) to wait at each stop (default: `3`)
 
 ## Events
