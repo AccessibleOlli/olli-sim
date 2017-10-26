@@ -23,7 +23,10 @@ simsource.init()
   })
   .then(() => {
     routepath = util.computePath(olliroute, PRECISION)
-    startSimulator()
+    sendMessage(simevents.routeInfo(olliroute, ollistops))
+      .then(() => {
+        startSimulator()
+      })
   })
   .catch(err => {
     console.error(err)
@@ -58,7 +61,7 @@ const runSimStep = (step, run) => {
 
     if (ollistops.length) {
       stopIndex = ollistops.findIndex(stop => {
-        return stop[0] === current[0] && stop[1] === current[1]
+        return stop.coordinates[0] === current[0] && stop.coordinates[1] === current[1]
       })
 
       if (stopIndex > -1) {
@@ -100,7 +103,7 @@ const runSimStep = (step, run) => {
         })
     } else {
       sendMessage(simevents.geoPosition(current[0], current[1], trippath))
-      util.sleep(400)
+      util.sleep(500)
         .then(() => runSimStep(++step, run))
     }
   } else if (LAPS < 1 || ++run < LAPS) {

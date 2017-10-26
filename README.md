@@ -37,6 +37,18 @@ The following settings can be configured in the `.env` file:
 
 The simulator sends events to the configured websocket and/or Cloudant/CouchDB database. The events are:
 
+* __route_info__ - coordinates and stops data for the route
+
+```
+{
+    'type': 'route_info',
+    'coordinates': [<coordinates>],
+    'stops': [<stops>],
+    'distance': distance,
+    'ts': <event time in ms>
+}
+```
+
 * __door_open__ - when the doors are opened
 
 
@@ -96,6 +108,41 @@ The simulator sends events to the configured websocket and/or Cloudant/CouchDB d
 Example series of events:
 
 ```
+{
+  "type": "route_info",
+  "coordinates": [
+    [-92.467044, 44.022365],
+    . . .
+    [-92.467044,44.022365]
+  ],
+  "stops": [
+    {
+      "name": "Mayo Gonda Building",
+      "description": "Mayo Clinic main patient building",
+      "poi": [
+        "Mayo Clinic specialties (cardiology, gastroenterology, neurology, etc.",
+        "May Clinic Gift Shop",
+        "Mayo Clinic Center for Innovation","Gonda Building Atrium"
+      ],
+      "coordinates": [-92.467044, 44.022365]
+    },
+    . . .
+    {
+      "name": "Mayo Guggenheim Building",
+      "description": "Mayo Clinic research laboratories",
+      "poi": [
+        "Mayo Clinic research laboratories",
+        "Mayo Medical School",
+        "Mayo Clinic Hilton building",
+        "Mayo Clinic Stabile building"
+      ],
+      "coordinates": [-92.467347, 44.020764]
+    }
+  ],
+  "distance": 1.4280120038830966,
+  "ts": 1509021021379
+}
+
 {
   "type": "trip_start",
   "from_coordinates": [-92.467044, 44.022365],

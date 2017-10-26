@@ -14,6 +14,24 @@ const close = () => {
   }
 }
 
+const routeInfo = (route, stops) => {
+  // type: 'route_info'
+  // coordinates: [<coordinates>],
+  // stops:  [<stops>],
+  // distance: <number>
+  let distance = 0
+  for (let i = 0; i < route.length - 1; i++) {
+    distance += util.computeDistanceKm(route[i], route[i + 1])
+  }
+
+  return {
+    'type': 'route_info',
+    'coordinates': route,
+    'stops': stops,
+    'distance': distance
+  }
+}
+
 const start = (route) => {
   // type: 'trip_start'
   // from_coordinates: [<lng>, <lat>],
@@ -88,5 +106,6 @@ module.exports = {
   tripEnd: end,
   doorOpen: open,
   doorClose: close,
-  geoPosition: position
+  geoPosition: position,
+  routeInfo: routeInfo
 }

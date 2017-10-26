@@ -6,7 +6,7 @@ const ROUTE_SRC = process.env['simulator_route_source'] || 'data/route.json'
 const STOPS_SRC = process.env['simulator_stops_source'] || 'data/stops.json'
 
 let routeCoordinates = null
-let stopsCoordinates = null
+// let stopsCoordinates = null
 let stops = null
 
 const init = () => {
@@ -23,12 +23,12 @@ const init = () => {
         initStops(sources[0], sources[1])
       }
 
-      console.log(`loaded routeCoordinates with ${routeCoordinates.length} coordinates`)
-      console.log(`loaded stopsCoordinates with ${stopsCoordinates.length} coordinates`)
+      console.log(`loaded route with ${routeCoordinates.length} coordinates`)
+      console.log(`loaded ${stops.length} stops`)
 
       return Promise.resolve({
         route: routeCoordinates,
-        stops: stopsCoordinates
+        stops: stops
       })
     })
 }
@@ -81,9 +81,9 @@ const initStops = (routeJson, stopsJson) => {
   }
 
   stops = stopsData
-  stopsCoordinates = stops.map(stop => {
-    return stop.coordinates
-  })
+  // stopsCoordinates = stops.map(stop => {
+  //   return stop.coordinates
+  // })
 }
 
 const getFromURL = (srcUrl) => {
@@ -131,5 +131,5 @@ const getFromFile = (filePath) => {
 module.exports = {
   init: init,
   route: routeCoordinates,
-  stops: stopsCoordinates
+  stops: stops
 }
