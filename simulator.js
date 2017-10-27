@@ -7,7 +7,8 @@ const simsource = require('./sim-source.js')
 
 const LAPS = process.env['simulator_number_of_runs'] || -1
 const PRECISION = process.env['simulator_route_precision'] || 5
-const STOPTIME = process.env['simulator_stop_duration'] || 3
+const STOPTIME = process.env['simulator_stop_duration'] || 5
+const SPEED = process.env['simulator_run_speed'] || 5
 
 let olliroute = null
 let ollistops = []
@@ -22,7 +23,10 @@ simsource.init()
     return simtarget.init()
   })
   .then(() => {
+    let routestops = ollistops.map(stop => stop.coordinates)
     routepath = util.computePath(olliroute, PRECISION)
+
+    routepath = util.adjustForSpeed(routepath, routestops, SPEED)
     sendMessage(simevents.routeInfo(olliroute, ollistops))
       .then(() => {
         startSimulator()
@@ -66,9 +70,9 @@ const runSimStep = (step, run) => {
 
       if (stopIndex > -1) {
         if (stopIndex + 1 >= ollistops.length) {
-          next = ollistops[0]
+          next = ollistops[0].coordinates || ollistops[0]
         } else {
-          next = ollistops[stopIndex + 1]
+          next = ollistops[stopIndex + 1].coordinates || ollistops[stopIndex + 1]
         }
       }
     }
@@ -76,14 +80,14 @@ const runSimStep = (step, run) => {
     if (step === 0) {
       trippath = computeTripPath(current, next)
 
-      sendMessage(simevents.tripStart(trippath))
+      sendMessage(simevents.tripStart(trippath, ollistops))
         .then(() => sendMessage(simevents.geoPosition(current[0], current[1], trippath)))
         .then(() => util.sleep(500))
         .then(() => runSimStep(++step, run))
     } else if (stopIndex > -1) {
       sendMessage(simevents.geoPosition(current[0], current[1], trippath))
         .then(() => util.sleep(500))
-        .then(() => sendMessage(simevents.tripEnd(trippath)))
+        .then(() => sendMessage(simevents.tripEnd(trippath, ollistops)))
         .then(() => sendMessage(simevents.doorOpen()))
         .then(() => util.sleep(STOPTIME * 1000))
         .then(() => sendMessage(simevents.doorClose()))
@@ -93,9 +97,9 @@ const runSimStep = (step, run) => {
           if (step < routepath.length) {
             trippath = computeTripPath(current, next)
 
-            sendMessage(simevents.tripStart(trippath))
+            sendMessage(simevents.tripStart(trippath, ollistops))
               .then(() => sendMessage(simevents.geoPosition(current[0], current[1], trippath)))
-              .then(() => util.sleep(50))
+              .then(() => util.sleep(500))
               .then(() => runSimStep(step, run))
           } else {
             runSimStep(step, run)
@@ -122,10 +126,13 @@ const computeTripPath = (origin, dest) => {
     return path[0] === dest[0] && path[1] === dest[1]
   })
 
-  let tripPath = routepath.slice(originIndex, destIndex || undefined)
+  let tripPath = []
 
-  if (destIndex === 0) {
+  if (destIndex <= 0) {
+    tripPath = routepath.slice(originIndex)
     tripPath.push(routepath[0])
+  } else {
+    tripPath = routepath.slice(originIndex, destIndex + 1)
   }
 
   return tripPath

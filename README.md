@@ -31,7 +31,7 @@ The following settings can be configured in the `.env` file:
 * `simulator_stops_source` - URL or file path to JSON file containing the stops GeoJSON (default: `data/stops.json`)
 * `simulator_number_of_runs` - number of times the simulator runs through the complete route (default: `-1` which mean infinite)
 * `simulator_route_precision` - when computing points along the route how precise/frequent should coordinates be calculated. the higher the number the more coordinates (default: `5`)
-* `simulator_stop_duration` - how long (in seconds) to wait at each stop (default: `3`)
+* `simulator_stop_duration` - how long (in seconds) to wait at each stop (default: `5`)
 
 ## Events
 
