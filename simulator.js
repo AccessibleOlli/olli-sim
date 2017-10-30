@@ -6,9 +6,9 @@ const simtarget = require('./sim-target.js')
 const simsource = require('./sim-source.js')
 
 const LAPS = process.env['simulator_number_of_runs'] || -1
-const PRECISION = process.env['simulator_route_precision'] || 5
-const STOPTIME = process.env['simulator_stop_duration'] || 5
-const SPEED = process.env['simulator_run_speed'] || 5
+const STOPTIME = process.env['simulator_stop_duration'] || 3
+const PRECISION = process.env['simulator_route_precision'] || 3
+const INTERVAL = (process.env['simulator_event_interval'] || 3) * 100
 
 let olliroute = null
 let ollistops = []
@@ -24,9 +24,9 @@ simsource.init()
   })
   .then(() => {
     let routestops = ollistops.map(stop => stop.coordinates)
-    routepath = util.computePath(olliroute, PRECISION)
+    routepath = util.computePath(olliroute)
+    routepath = util.adjustForPrecision(routepath, routestops, PRECISION)
 
-    routepath = util.adjustForSpeed(routepath, routestops, SPEED)
     sendMessage(simevents.routeInfo(olliroute, ollistops))
       .then(() => {
         startSimulator()
@@ -82,7 +82,7 @@ const runSimStep = (step, run) => {
 
       sendMessage(simevents.tripStart(trippath, ollistops))
         .then(() => sendMessage(simevents.geoPosition(current[0], current[1], trippath)))
-        .then(() => util.sleep(500))
+        .then(() => util.sleep(INTERVAL))
         .then(() => runSimStep(++step, run))
     } else if (stopIndex > -1) {
       sendMessage(simevents.geoPosition(current[0], current[1], trippath))
@@ -99,7 +99,7 @@ const runSimStep = (step, run) => {
 
             sendMessage(simevents.tripStart(trippath, ollistops))
               .then(() => sendMessage(simevents.geoPosition(current[0], current[1], trippath)))
-              .then(() => util.sleep(500))
+              .then(() => util.sleep(INTERVAL))
               .then(() => runSimStep(step, run))
           } else {
             runSimStep(step, run)
@@ -107,7 +107,7 @@ const runSimStep = (step, run) => {
         })
     } else {
       sendMessage(simevents.geoPosition(current[0], current[1], trippath))
-      util.sleep(500)
+      util.sleep(INTERVAL)
         .then(() => runSimStep(++step, run))
     }
   } else if (LAPS < 1 || ++run < LAPS) {

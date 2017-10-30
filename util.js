@@ -75,57 +75,53 @@ const getPointsBetween = (from, to, steps) => {
  * Compute full travel path of given route
  *
  * @param {Array} route - array of the coordinates to compute travel path
- * @param {Number} precision - how precise to make the travel path (default: 0, meaning no updates to route)
  * @returns {Array} array of the coordinates of the computed travel path
  */
-const computeTravelPath = (route, precision) => {
+const computeTravelPath = (route) => {
   let routePath = []
-  if (isNaN(precision) || precision <= 0) {
-    routePath = route
-  } else {
-    let path = [route[0]]
-    let current = null
-    let next = null
-    let steps = null
-    let pointsBetween = null
+  let path = [route[0]]
+  let current = null
+  let next = null
+  let steps = null
+  let pointsBetween = null
+  let distance = 0
 
-    const stepsFactor = EARTH_RADIUS_KM * (precision * 500)
+  for (let i = 0; i < route.length - 1; i++) {
+    current = route[i]
+    next = route[i + 1]
 
-    for (let i = 0; i < route.length - 1; i++) {
-      current = route[i]
-      next = route[i + 1]
+    distance = computeDistance(current, next) * EARTH_RADIUS_KM * 1000
+    steps = Math.round(3 * distance)
 
-      steps = computeDistance(current, next) * stepsFactor
-      pointsBetween = getPointsBetween(current, next, steps)
+    pointsBetween = getPointsBetween(current, next, steps)
 
-      path = path.concat(pointsBetween)
-      path.push(next)
-    }
-
-    routePath = [path[0]]
-    path.forEach(p => {
-      if (p[0] !== routePath[routePath.length - 1][0] || p[1] !== routePath[routePath.length - 1][1]) {
-        routePath.push(p)
-      }
-    })
+    path = path.concat(pointsBetween)
+    path.push(next)
   }
 
-  console.log(`expanded route from ${route.length} to ${routePath.length} coordinates with precision=${precision}`)
+  routePath = [path[0]]
+  path.forEach(p => {
+    if (p[0] !== routePath[routePath.length - 1][0] || p[1] !== routePath[routePath.length - 1][1]) {
+      routePath.push(p)
+    }
+  })
+
+  console.log(`expanded route from ${route.length} to ${routePath.length} coordinates`)
   return routePath
 }
 
 /**
- * Adjust the travel path for the given speed
+ * Adjust the travel path for the given frequency
  *
  * @param {Array} path - array of the coordinates of the travel path
  * @param {Array} stops - array of the stop coordinates
- * @param {Number} speed - the speed factor
+ * @param {Number} precision - the precision factor
  * @returns {Array} array of the coordinates of the adjusted travel path
  */
-const computeSpeedPath = (path, stops, speed) => {
+const computePrecisionPath = (path, stops, precision) => {
   let adjusted = []
 
-  if (isNaN(speed) || speed <= 1) {
+  if (isNaN(precision) || precision <= 0) {
     adjusted = path
   } else {
     const last = path.length - 1
@@ -146,7 +142,9 @@ const computeSpeedPath = (path, stops, speed) => {
 
       dist += computeDistance(p, path[i + 1]) * EARTH_RADIUS_KM * 1000
 
-      if (dist >= speed / 2.5) {
+      // if (i % (precision * 5) === 0) {
+      if (dist >= precision) {
+        // console.log(dist)
         dist = 0
         return true
       }
@@ -155,14 +153,14 @@ const computeSpeedPath = (path, stops, speed) => {
     })
   }
 
-  console.log(`adjusted route from ${path.length} to ${adjusted.length} coordinates with speed=${speed}`)
+  console.log(`adjusted route from ${path.length} to ${adjusted.length} coordinates with precision=${precision}`)
   return adjusted
 }
 
 module.exports = {
   sleep: sleepTimer,
   computePath: computeTravelPath,
-  adjustForSpeed: computeSpeedPath,
+  adjustForPrecision: computePrecisionPath,
   computeDistance: computeDistance,
   computeDistanceKm: function (from, to) {
     return computeDistance(from, to) * EARTH_RADIUS_KM
