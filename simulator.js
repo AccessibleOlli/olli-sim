@@ -81,11 +81,11 @@ const runSimStep = (step, run) => {
       trippath = computeTripPath(current, next)
 
       sendMessage(simevents.tripStart(trippath, ollistops))
-        .then(() => sendMessage(simevents.geoPosition(current[0], current[1], trippath)))
+        .then(() => sendMessage(simevents.geoPosition(current, trippath)))
         .then(() => util.sleep(INTERVAL))
         .then(() => runSimStep(++step, run))
     } else if (stopIndex > -1) {
-      sendMessage(simevents.geoPosition(current[0], current[1], trippath))
+      sendMessage(simevents.geoPosition(current, trippath))
         .then(() => util.sleep(500))
         .then(() => sendMessage(simevents.tripEnd(trippath, ollistops)))
         .then(() => sendMessage(simevents.doorOpen()))
@@ -98,7 +98,7 @@ const runSimStep = (step, run) => {
             trippath = computeTripPath(current, next)
 
             sendMessage(simevents.tripStart(trippath, ollistops))
-              .then(() => sendMessage(simevents.geoPosition(current[0], current[1], trippath)))
+              .then(() => sendMessage(simevents.geoPosition(current, trippath)))
               .then(() => util.sleep(INTERVAL))
               .then(() => runSimStep(step, run))
           } else {
@@ -106,7 +106,7 @@ const runSimStep = (step, run) => {
           }
         })
     } else {
-      sendMessage(simevents.geoPosition(current[0], current[1], trippath))
+      sendMessage(simevents.geoPosition(current, trippath))
       util.sleep(INTERVAL)
         .then(() => runSimStep(++step, run))
     }

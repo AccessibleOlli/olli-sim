@@ -64,7 +64,11 @@ const getPointsBetween = (from, to, steps) => {
       let lat3 = Math.atan2(z, Math.sqrt((x * x) + (y * y)))
       let lon3 = Math.atan2(y, x)
 
-      pointsBetween.push([toDegrees(lon3), toDegrees(lat3)])
+      if (from.length > 2) {
+        pointsBetween.push([toDegrees(lon3), toDegrees(lat3), from[2]])
+      } else {
+        pointsBetween.push([toDegrees(lon3), toDegrees(lat3)])
+      }
     }
   }
 

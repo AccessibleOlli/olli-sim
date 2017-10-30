@@ -84,13 +84,15 @@ const end = (route, stops) => {
   return event
 }
 
-const position = (lng, lat, route) => {
+const position = (coordinates, route) => {
   // type: 'geo_position'
   // coordinates: [<lng>, <lat>],
   // distance_travelled: <number>,
   // distance_remaining: <number>
   let travelled = -1
   let remaining = -1
+  const lng = coordinates[0]
+  const lat = coordinates[1]
 
   if (route && route.length) {
     travelled = 0
@@ -111,7 +113,7 @@ const position = (lng, lat, route) => {
 
   return {
     'type': 'geo_position',
-    'coordinates': [lng, lat],
+    'coordinates': coordinates,
     'distance_travelled': travelled,
     'distance_remaining': remaining
   }
