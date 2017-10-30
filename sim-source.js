@@ -41,7 +41,14 @@ const initRoute = (routeJson, stopsJson) => {
     features.forEach(f => {
       if (f.geometry) {
         if (f.geometry.type === 'Point') {
-          coordinates.push(f.geometry.coordinates)
+          if (f.properties) {
+            coordinates.push({
+              coordinates: f.geometry.coordinates,
+              properties: f.properties
+            })
+          } else {
+            coordinates.push(f.geometry.coordinates)
+          }
         } else if (f.geometry.type === 'LineString') {
           coordinates = coordinates.concat(f.geometry.coordinates)
         }

@@ -15,10 +15,13 @@ const toDegrees = (radians) => {
 /**
  * Compute distance (in radians) between two coordinates
  *
- * @param {Array} from - coordinate of the start point
- * @param {Array} to - coordinate of the end point
+ * @param {Array|Object} fromPoint - the start point
+ * @param {Array|Object} toPoint - the end point
  */
-const computeDistance = (from, to) => {
+const computeDistance = (fromPoint, toPoint) => {
+  const from = Array.isArray(fromPoint) ? fromPoint : fromPoint.coordinates
+  const to = Array.isArray(toPoint) ? toPoint : toPoint.coordinates
+
   const lat1 = toRadians(from[1])
   const lat2 = toRadians(to[1])
   const deltaLat = toRadians(to[1] - from[1])
@@ -40,7 +43,9 @@ const computeDistance = (from, to) => {
  * @param {number} steps - number of points between start and end to compute
  * @returns {Array} array of the coordinates of the computed points
  */
-const getPointsBetween = (from, to, steps) => {
+const getPointsBetween = (fromPoint, toPoint, steps) => {
+  const from = Array.isArray(fromPoint) ? fromPoint : fromPoint.coordinates
+  const to = Array.isArray(toPoint) ? toPoint : toPoint.coordinates
   let pointsBetween = []
 
   if (from[0] === to[0] && from[1] === to[1]) {
@@ -65,9 +70,23 @@ const getPointsBetween = (from, to, steps) => {
       let lon3 = Math.atan2(y, x)
 
       if (from.length > 2) {
-        pointsBetween.push([toDegrees(lon3), toDegrees(lat3), from[2]])
+        if (fromPoint.properties) {
+          pointsBetween.push({
+            coordinates: [toDegrees(lon3), toDegrees(lat3), from[2]],
+            properties: fromPoint.properties
+          })
+        } else {
+          pointsBetween.push([toDegrees(lon3), toDegrees(lat3), from[2]])
+        }
       } else {
-        pointsBetween.push([toDegrees(lon3), toDegrees(lat3)])
+        if (fromPoint.properties) {
+          pointsBetween.push({
+            coordinates: [toDegrees(lon3), toDegrees(lat3)],
+            properties: fromPoint.properties
+          })
+        } else {
+          pointsBetween.push([toDegrees(lon3), toDegrees(lat3)])
+        }
       }
     }
   }
@@ -105,7 +124,8 @@ const computeTravelPath = (route) => {
 
   routePath = [path[0]]
   path.forEach(p => {
-    if (p[0] !== routePath[routePath.length - 1][0] || p[1] !== routePath[routePath.length - 1][1]) {
+    let r = (routePath[routePath.length - 1].coordinates || routePath[routePath.length - 1])
+    if ((p.coordinates || p)[0] !== r[0] || (p.coordinates || p)[1] !== r[1]) {
       routePath.push(p)
     }
   })

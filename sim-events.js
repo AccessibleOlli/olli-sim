@@ -84,15 +84,15 @@ const end = (route, stops) => {
   return event
 }
 
-const position = (coordinates, route) => {
+const position = (currentposition, route) => {
   // type: 'geo_position'
   // coordinates: [<lng>, <lat>],
   // distance_travelled: <number>,
   // distance_remaining: <number>
   let travelled = -1
   let remaining = -1
-  const lng = coordinates[0]
-  const lat = coordinates[1]
+  const lng = (currentposition.coordinates || currentposition)[0]
+  const lat = (currentposition.coordinates || currentposition)[1]
 
   if (route && route.length) {
     travelled = 0
@@ -111,12 +111,18 @@ const position = (coordinates, route) => {
     }
   }
 
-  return {
+  let pos = {
     'type': 'geo_position',
-    'coordinates': coordinates,
+    'coordinates': (currentposition.coordinates || currentposition),
     'distance_travelled': travelled,
     'distance_remaining': remaining
   }
+
+  if (currentposition.properties) {
+    pos.properties = currentposition.properties
+  }
+
+  return pos
 }
 
 module.exports = {
