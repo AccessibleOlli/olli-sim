@@ -144,7 +144,8 @@ const getRouteIndex = (current) => {
   let routeIndex = -1
   if (routepath.length) {
     routeIndex = routepath.findIndex(path => {
-      return path[0] === (current.coordinates || current)[0] && path[1] === (current.coordinates || current)[1]
+      return (path.coordinates || path)[0] === (current.coordinates || current)[0] &&
+        (path.coordinates || path)[1] === (current.coordinates || current)[1]
     })
   }
   return routeIndex

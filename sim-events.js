@@ -89,10 +89,11 @@ const position = (currentposition, route) => {
   // coordinates: [<lng>, <lat>],
   // distance_travelled: <number>,
   // distance_remaining: <number>
+  let current = (currentposition.coordinates || currentposition)
   let travelled = -1
   let remaining = -1
-  const lng = (currentposition.coordinates || currentposition)[0]
-  const lat = (currentposition.coordinates || currentposition)[1]
+  const lng = current[0]
+  const lat = current[1]
 
   if (route && route.length) {
     travelled = 0
@@ -100,7 +101,8 @@ const position = (currentposition, route) => {
     let dest = false
 
     for (let i = 0; i < route.length - 1; i++) {
-      if (route[i][0] === lng && route[i][1] === lat) {
+      let r = (route[i].coordinates || route[i])
+      if (r[0] === lng && r[1] === lat) {
         dest = true
       }
       if (dest) {
@@ -113,7 +115,7 @@ const position = (currentposition, route) => {
 
   let pos = {
     'type': 'geo_position',
-    'coordinates': (currentposition.coordinates || currentposition),
+    'coordinates': current,
     'distance_travelled': travelled,
     'distance_remaining': remaining
   }
