@@ -156,7 +156,7 @@ const computePrecisionPath = (path, stops, precision) => {
       }
 
       const atStop = stops.some(s => {
-        return s[0] === p[0] && s[1] === p[1]
+        return (s.coordinates || s)[0] === (p.coordinates || p)[0] && (s.coordinates || s)[1] === (p.coordinates || p)[1]
       })
 
       if (atStop) {
