@@ -1,6 +1,6 @@
-# OlliRevisited Simulator
+# Olli Rochester Simulator
 
-Simulator for OlliRevisited
+Simulator for Olli Rochester demo
 
 ## Prerequisites
 
@@ -8,7 +8,7 @@ Simulator for OlliRevisited
 
 ## Quick Start
 
-1. Clone this [repo](https://github.ibm.com/ibm-watson-data-lab/olli-sim)
+1. Clone this [repo](https://github.com/AccessibleOlli/olli-sim)
 1. From terminal, go to the root directory of the cloned repo
 1. From terminal, Run command
 
