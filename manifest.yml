@@ -1,0 +1,8 @@
+name: ollisim
+random-route: false
+memory: 256M
+disk_quota: 128M
+command: node app.js
+path: .
+domain: mybluemix.net
+instances: 1
