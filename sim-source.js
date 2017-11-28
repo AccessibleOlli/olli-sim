@@ -2,18 +2,22 @@ const request = require('request')
 const fs = require('fs')
 const path = require('path')
 
-const ROUTE_SRC = process.env['simulator_route_source'] || 'data/route.json'
-const STOPS_SRC = process.env['simulator_stops_source'] || 'data/stops.json'
+// let config = {
+//   ROUTE_SRC: process.env['simulator_route_source'] || 'data/route.json',
+//   STOPS_SRC: process.env['simulator_stops_source'] || 'data/stops.json'
+// }
 
 let routeCoordinates = null
 // let stopsCoordinates = null
 let stops = null
 
-const init = () => {
-  const getRoute = ROUTE_SRC.startsWith('http') ? getFromURL : getFromFile
-  const getStops = STOPS_SRC.startsWith('http') ? getFromURL : getFromFile
+const init = options => {
+  let config = options || {}
 
-  return Promise.all([getRoute(ROUTE_SRC), getStops(STOPS_SRC)])
+  const getRoute = config.ROUTE_SRC.startsWith('http') ? getFromURL : getFromFile
+  const getStops = config.STOPS_SRC.startsWith('http') ? getFromURL : getFromFile
+
+  return Promise.all([getRoute(config.ROUTE_SRC), getStops(config.STOPS_SRC)])
     .then(sources => {
       if (!sources[0] && !sources[1]) {
         console.warn('route and stops sources not found')

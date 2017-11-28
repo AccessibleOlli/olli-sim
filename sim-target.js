@@ -1,21 +1,35 @@
 const net = require('net')
 const cloudant = require('cloudant')
 
-const TARGET_SOCKET = process.env['simulator_target_websocket'] || '127.0.0.1:8000'
-const TARGET_CLOUDANT = process.env['simulator_target_cloudant'] || 'http://127.0.0.1:5984/ollilocation'
+// let config = {
+//   TARGET_SOCKET: process.env['simulator_target_websocket'] || '127.0.0.1:8000',
+//   TARGET_CLOUDANT: process.env['simulator_target_cloudant'] || 'http://127.0.0.1:5984/ollilocation'
+// }
 
 let db = null
 let conn = null
 
-let websocket = TARGET_SOCKET.split(':')
-const hostwebsocket = websocket[0]
-const portwebsocket = websocket.length > 1 ? Number(websocket[1]) : '8000'
+let hostwebsocket = null
+let portwebsocket = null
 
-let cloudantindex = TARGET_CLOUDANT.lastIndexOf('/')
-const hostcloudant = TARGET_CLOUDANT.substring(0, cloudantindex)
-const dbnamecloudant = TARGET_CLOUDANT.substring(cloudantindex + 1)
+let hostcloudant = null
+let dbnamecloudant = null
 
-const init = () => {
+const setConfig = (config) => {
+  let websocket = config.TARGET_SOCKET.split(':')
+  hostwebsocket = websocket[0]
+  portwebsocket = websocket.length > 1 ? Number(websocket[1]) : '8000'
+
+  let cloudantindex = config.TARGET_CLOUDANT.lastIndexOf('/')
+  hostcloudant = config.TARGET_CLOUDANT.substring(0, cloudantindex)
+  dbnamecloudant = config.TARGET_CLOUDANT.substring(cloudantindex + 1)
+}
+
+const init = options => {
+  let opts = options || {}
+
+  setConfig(opts)
+
   return Promise.all([initCloudant(), initSocket()])
     .then(connections => {
       if (!connections[0] && !connections[1]) {
@@ -26,6 +40,7 @@ const init = () => {
 }
 
 const initCloudant = () => {
+  db = null
   return Promise.resolve()
     .then(() => {
       return new Promise((resolve, reject) => {
@@ -53,6 +68,7 @@ const initCloudant = () => {
 
 const initSocket = (retryCount) => {
   return Promise.resolve()
+    .then(() => close)
     .then(() => {
       console.log(`trying to establish connection to ${hostwebsocket}:${portwebsocket}`)
       conn = net.createConnection(portwebsocket, hostwebsocket)
@@ -121,6 +137,7 @@ const close = () => {
     .then(() => {
       if (conn) {
         conn.destroy()
+        conn = null
       }
       console.log('close: connections terminated')
       return Promise.resolve()

@@ -9,24 +9,89 @@
 <body>
     <h1>Olli movement simulator</h1>
 
-    <button type="button" onclick="start()">Start</button>
-    <button type="button" onclick="stop()">Stop</button>
+    <div>
+        <button id="startBtn" type="button" onclick="toggleStart()" disabled>Start</button>
+        <button id="pauseBtn" type="button" onclick="togglePause()" disabled>Pause</button>
+    </div>
+
+    <div>
+        <textarea id="textBox" style="height: 228px; width: 95%; margin-top: 25px;max-width: 1000px;"></textarea>
+    </div>
 
     <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
     <script>
-        function start() {
-            axios.get('/start')
+        var startBtn = document.getElementById("startBtn")
+        var pauseBtn = document.getElementById("pauseBtn")
+        var textBox = document.getElementById("textBox")
+
+        function addText(msg) {
+            textBox.value += (msg.data || msg) + '\r\n\r\n'
+        }
+
+        function getInfo() {
+            axios.get('/info')
                 .then(response => {
                     console.log(response)
+                    var d = response.data || response
+                    addText('config: ' + JSON.stringify(d.config))
+                    addText('status: started=' + d.started + ', paused=' + d.paused)
+                    startBtn.innerText = d.hasOwnProperty('started') && d.started ? 'Stop' : 'Start'
+                    pauseBtn.innerText = d.hasOwnProperty('paused') && d.paused ? 'Continue' : 'Pause'
+                    pauseBtn.disabled = d.hasOwnProperty('started') && !d.started ? true : false
                 })
         }
 
-        function stop() {
-            axios.get('/stop')
-            .then(response => {
-                console.log(response)
-            })
-    }
+        function toggleStart() {
+            startBtn.disabled = true
+            if (startBtn.innerText === 'Start') {
+                axios.get('/start')
+                    .then(response => {
+                        console.log(response)
+                        startBtn.innerText = 'Stop'
+                        pauseBtn.innerText = 'Pause'
+                        startBtn.disabled = false
+                        pauseBtn.disabled = false
+                        addText(response)
+                    })
+                
+            } else {
+                axios.get('/stop')
+                    .then(response => {
+                        console.log(response)
+                        startBtn.innerText = 'Start'
+                        startBtn.disabled = false
+                        pauseBtn.disabled = true
+                        addText(response)
+                    })
+            }
+        }
+        
+        function togglePause() {
+            pauseBtn.disabled = true
+            if (pauseBtn.innerText === 'Pause') {
+                axios.get('/pause')
+                    .then(response => {
+                        console.log(response)
+                        pauseBtn.innerText = 'Continue'
+                        pauseBtn.disabled = false
+                        addText(response)
+                    })
+                
+            } else {
+                axios.get('/continue')
+                    .then(response => {
+                        console.log(response)
+                        pauseBtn.innerText = 'Pause'
+                        pauseBtn.disabled = false
+                        addText(response)
+                    })
+            }
+        }
+
+        startBtn.disabled = false; 
+        pauseBtn.disabled = true;
+        textBox.value = ''
+        getInfo()
     </script>
 </body>
 </html>
