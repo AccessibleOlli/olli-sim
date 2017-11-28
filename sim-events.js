@@ -44,8 +44,8 @@ const start = (route, stops) => {
     distance += util.computeDistanceKm(route[i], route[i + 1])
   }
 
-  const fromCoord = route[0]
-  const toCoord = route[route.length - 1]
+  const fromCoord = (route[0].coordinates || route[0])
+  const toCoord = (route[route.length - 1].coordinates || route[route.length - 1])
 
   let event = {
     'type': 'trip_start',
@@ -56,16 +56,16 @@ const start = (route, stops) => {
 
   if (stops) {
     const fromStop = stops.filter(stop => {
-      return stop.coordinates[0] === fromCoord[0] &&
-        stop.coordinates[1] === fromCoord[1]
+      return (stop.coordinates || stop)[0] === fromCoord[0] &&
+        (stop.coordinates || stop)[1] === fromCoord[1]
     })
     const toStop = stops.filter(stop => {
-      return stop.coordinates[0] === toCoord[0] &&
-        stop.coordinates[1] === toCoord[1]
+      return (stop.coordinates || stop)[0] === toCoord[0] &&
+        (stop.coordinates || stop)[1] === toCoord[1]
     })
 
-    event['from_stop'] = fromStop[0]
-    event['to_stop'] = toStop[0]
+    event['from_stop'] = (fromStop[0].coordinates || fromStop[0])
+    event['to_stop'] = (toStop[0].coordinates || toStop[0])
   }
 
   return event
