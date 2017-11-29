@@ -1,34 +1,23 @@
-const net = require('net')
 const cloudant = require('cloudant')
-
-// let config = {
-//   TARGET_SOCKET: process.env['simulator_target_websocket'] || '127.0.0.1:8000',
-//   TARGET_CLOUDANT: process.env['simulator_target_cloudant'] || 'http://127.0.0.1:5984/ollilocation'
-// }
+const WebSocket = require('ws')
 
 let db = null
-let conn = null
+let wss = null
 
-let hostwebsocket = null
 let portwebsocket = null
-
 let hostcloudant = null
 let dbnamecloudant = null
 
-const setConfig = (config) => {
-  let websocket = config.TARGET_SOCKET.split(':')
-  hostwebsocket = websocket[0]
-  portwebsocket = websocket.length > 1 ? Number(websocket[1]) : '8000'
+const configure = (config) => {
+  portwebsocket = isNaN(config.TARGET_WS_PORT) ? 8080 : config.TARGET_WS_PORT
 
   let cloudantindex = config.TARGET_CLOUDANT.lastIndexOf('/')
   hostcloudant = config.TARGET_CLOUDANT.substring(0, cloudantindex)
   dbnamecloudant = config.TARGET_CLOUDANT.substring(cloudantindex + 1)
 }
 
-const init = options => {
-  let opts = options || {}
-
-  setConfig(opts)
+const init = (config) => {
+  configure(config)
 
   return Promise.all([initCloudant(), initSocket()])
     .then(connections => {
@@ -68,25 +57,29 @@ const initCloudant = () => {
 
 const initSocket = (retryCount) => {
   return Promise.resolve()
-    .then(() => close)
     .then(() => {
-      console.log(`trying to establish connection to ${hostwebsocket}:${portwebsocket}`)
-      conn = net.createConnection(portwebsocket, hostwebsocket)
       return new Promise((resolve, reject) => {
-        conn
-          .on('connect', () => {
-            console.log(`established connection to ${hostwebsocket}:${portwebsocket}`)
-            resolve(true)
-          })
-          .on('close', hadError => {
-            console.log(`connection to ${hostwebsocket}:${portwebsocket} closed`)
-            conn = null
-            resolve(false)
-          })
-          .on('error', err => {
-            console.error(err)
-            resolve(false)
-          })
+        if (!wss) {
+          wss = new WebSocket.Server({ port: portwebsocket })
+
+          wss
+            .on('connection', (ws, req) => {
+              console.log('websocket connection:', req ? req.connection.remoteAddress : '')
+            })
+            .on('close', (code, reason) => {
+              console.log(`websocket closed: ${reason}`)
+            })
+            .on('listening', () => {
+              console.log('websocket listening on', portwebsocket)
+              resolve(true)
+            })
+            .on('error', err => {
+              console.error(err)
+              resolve(false)
+            })
+        } else {
+          resolve(true)
+        }
       })
     })
     .catch(err => {
@@ -101,10 +94,15 @@ const sendMessage = (msg) => {
       return new Promise((resolve, reject) => {
         let data = null
         msg['ts'] = (new Date()).getTime()
-        if (conn) {
+        if (wss) {
           data = JSON.stringify(msg)
           console.log('sendMessage to websocket:', data)
-          conn.write(Buffer.from(data))
+
+          wss.clients.forEach((client) => {
+            if (client.readyState === WebSocket.OPEN) {
+              client.send(data)
+            }
+          })
         }
 
         if (db) {
@@ -135,12 +133,15 @@ const sendMessage = (msg) => {
 const close = () => {
   return Promise.resolve()
     .then(() => {
-      if (conn) {
-        conn.destroy()
-        conn = null
+      if (wss) {
+        wss.close(() => {
+          console.log('close: websocket terminated')
+          wss = null
+          return Promise.resolve()
+        })
+      } else {
+        return Promise.resolve()
       }
-      console.log('close: connections terminated')
-      return Promise.resolve()
     })
     .catch(err => {
       console.error(err)

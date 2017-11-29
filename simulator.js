@@ -2,15 +2,15 @@ require('dotenv').config()
 
 const util = require('./util.js')
 const simevents = require('./sim-events.js')
-const simtarget = require('./sim-target.js')
 const simsource = require('./sim-source.js')
+const simtarget = require('./sim-target.js')
 
 let config = {
   LAPS: process.env['simulator_number_of_runs'] || -1,
   STOPTIME: process.env['simulator_stop_duration'] || 3,
   PRECISION: process.env['simulator_route_precision'] || 3,
   INTERVAL: (process.env['simulator_event_interval'] || 3) * 100,
-  TARGET_SOCKET: process.env['simulator_target_websocket'] || '127.0.0.1:8000',
+  TARGET_WS_PORT: process.env['simulator_websocket_port'] || 8080,
   TARGET_CLOUDANT: process.env['simulator_target_cloudant'] || 'http://127.0.0.1:5984/ollilocation',
   ROUTE_SRC: process.env['simulator_route_source'] || 'data/route.json',
   STOPS_SRC: process.env['simulator_stops_source'] || 'data/stops.json'
@@ -28,6 +28,7 @@ let currentRun = 0
 
 const info = () => {
   let opts = config || {}
+  let params = {}
 
   for (let o in opts) {
     if (typeof opts[o] === 'string' && opts[o].indexOf('://') > -1) {
@@ -35,8 +36,10 @@ const info = () => {
       let end = opts[o].indexOf('/', start + 3)
       let at = opts[o].indexOf('@', start + 3)
       if (at > start && at < end) {
-        opts[o] = opts[o].substring(0, start + 3) + 'xxxx:xxxx' + opts[o].substring(at)
+        params[o] = opts[o].substring(0, start + 3) + 'xxxx:xxxx' + opts[o].substring(at)
       }
+    } else {
+      params[o] = opts[o]
     }
   }
 
@@ -45,7 +48,7 @@ const info = () => {
     paused: paused,
     step: currentStep,
     run: currentRun,
-    config: config
+    config: params
   }
 
   return Promise.resolve(info)
@@ -257,15 +260,15 @@ const getRouteIndex = (current) => {
   return routeIndex
 }
 
-module.exports = {
-  start: begin,
-  stop: endSimulator,
-  pause: pauseSimulator,
-  continue: continueSimulator,
-  info: info
-}
-
 // file is being run directly, instead of loaded using require()
 if (require.main === module) {
   begin()
+} else {
+  module.exports = {
+    start: begin,
+    stop: endSimulator,
+    pause: pauseSimulator,
+    continue: continueSimulator,
+    info: info
+  }
 }
