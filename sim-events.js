@@ -64,8 +64,8 @@ const start = (route, stops) => {
         (stop.coordinates || stop)[1] === toCoord[1]
     })
 
-    event['from_stop'] = (fromStop[0].coordinates || fromStop[0])
-    event['to_stop'] = (toStop[0].coordinates || toStop[0])
+    event['from_stop'] = fromStop[0]
+    event['to_stop'] = toStop[0]
   }
 
   return event
