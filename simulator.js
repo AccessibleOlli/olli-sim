@@ -11,7 +11,7 @@ let config = {
   LAPS: process.env['simulator_number_of_runs'] || -1,
   STOPTIME: process.env['simulator_stop_duration'] || 3,
   PRECISION: process.env['simulator_route_precision'] || 3,
-  INTERVAL: (process.env['simulator_event_interval'] || 3) * 100,
+  INTERVAL: (process.env['simulator_event_interval'] || 5) * 100,
   TARGET_CLOUDANT: process.env['simulator_target_cloudant'] || 'http://127.0.0.1:5984/ollilocation',
   ROUTE_SRC: process.env['simulator_route_source'] || 'data/route.json',
   STOPS_SRC: process.env['simulator_stops_source'] || 'data/stops.json'

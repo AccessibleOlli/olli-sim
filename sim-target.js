@@ -65,6 +65,10 @@ const initSocket = (retryCount) => {
           wss
             .on('connection', (ws, req) => {
               console.log('websocket connection:', req ? req.connection.remoteAddress : '')
+              ws.on('pong', () => {
+                console.log('websocket pong')
+              })
+              ws.send('connection received')
               resolve(true)
             })
             .on('close', (code, reason) => {
@@ -72,7 +76,7 @@ const initSocket = (retryCount) => {
               resolve(false)
             })
             .on('listening', () => {
-              console.log('websocket listening on', server ? wss : portwebsocket)
+              console.log('websocket listening on', wss)
               resolve(true)
             })
             .on('error', err => {
@@ -81,7 +85,9 @@ const initSocket = (retryCount) => {
             })
 
           if (server) {
-            resolve(true)
+            setTimeout(() => {
+              resolve(true)
+            }, 1000)
           }
         } else {
           resolve(true)
@@ -98,11 +104,12 @@ const sendMessage = (msg) => {
   return Promise.resolve()
     .then(() => {
       return new Promise((resolve, reject) => {
+        // console.log('sendMessage:', msg)
         let data = null
         msg['ts'] = (new Date()).getTime()
         if (wss) {
           data = JSON.stringify(msg)
-          console.log('sendMessage to websocket:', data)
+          console.log('sending data to websocket')
 
           wss.clients.forEach((client) => {
             if (client.readyState === WebSocket.OPEN) {
@@ -113,7 +120,7 @@ const sendMessage = (msg) => {
 
         if (db) {
           data = msg
-          console.log('sendMessage to cloudant: ', JSON.stringify(data))
+          console.log('sending data to cloudant')
           db.insert(data, (err, body) => {
             if (err) {
               console.error(err)
@@ -124,8 +131,7 @@ const sendMessage = (msg) => {
           })
         }
 
-        if (!data) {
-          console.log('no connection to send message: ', JSON.stringify(msg))
+        if (!data || !db) {
           resolve()
         }
       })

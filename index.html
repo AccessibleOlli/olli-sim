@@ -4,10 +4,10 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta http-equiv="X-UA-Compatible" content="ie=edge">
-    <title>Olli movement simulator</title>
+    <title>Olli Movement Simulator controller</title>
 </head>
 <body>
-    <h1>Olli movement simulator</h1>
+    <h1>Olli Movement Simulator controller</h1>
 
     <div>
         <button id="startBtn" type="button" onclick="toggleStart()" disabled>Start</button>
@@ -114,7 +114,7 @@
 
         function websocketConnect() {
             console.log('Creating socket')
-            socket = new WebSocket('ws://' + window.location.host)
+            socket = new WebSocket(window.location.protocol.replace('http', 'ws') + '//' + window.location.host)
 
             socket.onopen = function() {
                 console.log('Socket opened')
@@ -125,13 +125,13 @@
             }
 
             socket.onerror = function(err) {
-                console.log('Socket err', err)
+                console.log('Socket error', err)
             }
 
             socket.onmessage = function(message) {
-                if (pauseBtn.innerText === 'Pause') {
+                // if (pauseBtn.innerText === 'Pause') {
                     addText(message.data)
-                }
+                // }
             }
         }
 
