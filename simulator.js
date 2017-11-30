@@ -1,5 +1,7 @@
 require('dotenv').config()
 
+const DIRECTRUN = require.main === module
+
 const util = require('./util.js')
 const simevents = require('./sim-events.js')
 const simsource = require('./sim-source.js')
@@ -10,7 +12,6 @@ let config = {
   STOPTIME: process.env['simulator_stop_duration'] || 3,
   PRECISION: process.env['simulator_route_precision'] || 3,
   INTERVAL: (process.env['simulator_event_interval'] || 3) * 100,
-  TARGET_WS_PORT: process.env['simulator_websocket_port'] || 8080,
   TARGET_CLOUDANT: process.env['simulator_target_cloudant'] || 'http://127.0.0.1:5984/ollilocation',
   ROUTE_SRC: process.env['simulator_route_source'] || 'data/route.json',
   STOPS_SRC: process.env['simulator_stops_source'] || 'data/stops.json'
@@ -38,6 +39,8 @@ const info = () => {
       if (at > start && at < end) {
         params[o] = opts[o].substring(0, start + 3) + 'xxxx:xxxx' + opts[o].substring(at)
       }
+    } else if (typeof opts[o] === 'string' && !isNaN(opts[o])) {
+      params[o] = +opts[o]
     } else {
       params[o] = opts[o]
     }
@@ -54,7 +57,7 @@ const info = () => {
   return Promise.resolve(info)
 }
 
-const begin = options => {
+const begin = (options, server) => {
   if (started && !paused) {
     return Promise.reject(new Error('Simulator already running'))
   } else {
@@ -68,7 +71,7 @@ const begin = options => {
         ollistops = geojson.stops
         olliroute = geojson.route
 
-        return simtarget.init(config)
+        return simtarget.init(config, server)
       })
       .then(() => {
         let routestops = ollistops.map(stop => stop.coordinates)
@@ -217,6 +220,9 @@ const runSimStep = (step, run) => {
       util.sleep(config.INTERVAL)
         .then(() => runSimStep(++step, run))
     }
+  } else if (!DIRECTRUN && simtarget.numClients() < 1 && config.LAPS < 1) {
+    // no connections, no need to run infinitely
+    endSimulator()
   } else if (config.LAPS < 1 || ++run < config.LAPS) {
     runSimStep(0, run)
   } else {
@@ -261,7 +267,7 @@ const getRouteIndex = (current) => {
 }
 
 // file is being run directly, instead of loaded using require()
-if (require.main === module) {
+if (DIRECTRUN) {
   begin()
 } else {
   module.exports = {

@@ -3,21 +3,17 @@ const WebSocket = require('ws')
 
 let db = null
 let wss = null
+let server = null
 
-let portwebsocket = null
+let portwebsocket = 8888
 let hostcloudant = null
 let dbnamecloudant = null
 
-const configure = (config) => {
-  portwebsocket = isNaN(config.TARGET_WS_PORT) ? 8080 : config.TARGET_WS_PORT
-
+const init = (config, websocketserver) => {
   let cloudantindex = config.TARGET_CLOUDANT.lastIndexOf('/')
   hostcloudant = config.TARGET_CLOUDANT.substring(0, cloudantindex)
   dbnamecloudant = config.TARGET_CLOUDANT.substring(cloudantindex + 1)
-}
-
-const init = (config) => {
-  configure(config)
+  server = websocketserver
 
   return Promise.all([initCloudant(), initSocket()])
     .then(connections => {
@@ -60,23 +56,33 @@ const initSocket = (retryCount) => {
     .then(() => {
       return new Promise((resolve, reject) => {
         if (!wss) {
-          wss = new WebSocket.Server({ port: portwebsocket })
+          if (server) {
+            wss = new WebSocket.Server({ server: server })
+          } else {
+            wss = new WebSocket.Server({ port: portwebsocket })
+          }
 
           wss
             .on('connection', (ws, req) => {
               console.log('websocket connection:', req ? req.connection.remoteAddress : '')
+              resolve(true)
             })
             .on('close', (code, reason) => {
               console.log(`websocket closed: ${reason}`)
+              resolve(false)
             })
             .on('listening', () => {
-              console.log('websocket listening on', portwebsocket)
+              console.log('websocket listening on', server ? wss : portwebsocket)
               resolve(true)
             })
             .on('error', err => {
               console.error(err)
               resolve(false)
             })
+
+          if (server) {
+            resolve(true)
+          }
         } else {
           resolve(true)
         }
@@ -149,8 +155,17 @@ const close = () => {
     })
 }
 
+const numConnections = () => {
+  let clients = 0
+  if (wss) {
+    clients = wss.clients.size
+  }
+  return clients
+}
+
 module.exports = {
   init: init,
   send: sendMessage,
-  close: close
+  close: close,
+  numClients: numConnections
 }

@@ -28,7 +28,6 @@
         var pauseBtn = document.getElementById("pauseBtn")
         var textBox = document.getElementById("textBox")
         var msgNode = document.getElementById("msg")
-        var wsport = null
         var socket = null
 
         function addText(msg) {
@@ -51,7 +50,6 @@
                     pauseBtn.innerText = d.hasOwnProperty('paused') && d.paused ? 'Continue' : 'Pause'
                     pauseBtn.disabled = d.hasOwnProperty('started') && !d.started ? true : false
 
-                    wsport = d.config.TARGET_WS_PORT
                     if (d.started) {
                         websocketConnect()
                     }
@@ -116,7 +114,7 @@
 
         function websocketConnect() {
             console.log('Creating socket')
-            socket = new WebSocket('ws://' + window.location.hostname + ':' + (wsport || 8080))
+            socket = new WebSocket('ws://' + window.location.host)
 
             socket.onopen = function() {
                 console.log('Socket opened')
@@ -124,6 +122,10 @@
 
             socket.onclose = function() {
                 console.log('Socket closed')
+            }
+
+            socket.onerror = function(err) {
+                console.log('Socket err', err)
             }
 
             socket.onmessage = function(message) {

@@ -1,18 +1,18 @@
 // require('dotenv').config()
+const server = require('http').createServer()
+const env = require('cfenv').getAppEnv()
 const path = require('path')
 const express = require('express')
 const app = express()
 
 const simulator = require('./simulator.js')
 
-const port = process.env.PORT || 3000
-
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '/index.html'))
 })
 
 app.get('/start', (req, res) => {
-  simulator.start()
+  simulator.start(null, server)
     .then(() => {
       res.send('Started simulator')
     })
@@ -66,6 +66,7 @@ app.get('/info', (req, res) => {
     })
 })
 
-app.listen(port, () => {
-  console.log(`To view your app, open this link in your browser: http://localhost:${port}`)
+server.on('request', app)
+server.listen(env.port, () => {
+  console.log(`To view your app, open this link in your browser: ${env.url}`)
 })
