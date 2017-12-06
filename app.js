@@ -1,11 +1,22 @@
 // require('dotenv').config()
-const server = require('http').createServer()
+const http = require('http')
 const env = require('cfenv').getAppEnv()
 const path = require('path')
 const express = require('express')
 const app = express()
 
 const simulator = require('./simulator.js')
+const server = http.createServer((req,res) => {
+	res.setHeader('Access-Control-Allow-Origin', '*');
+	res.setHeader('Access-Control-Request-Method', '*');
+	res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET');
+	res.setHeader('Access-Control-Allow-Headers', '*');
+	if ( req.method === 'OPTIONS' ) {
+		res.writeHead(200);
+		res.end();
+		return;
+	}
+})
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '/index.html'))
