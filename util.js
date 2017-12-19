@@ -181,6 +181,16 @@ const computePrecisionPath = (path, stops, precision) => {
   return adjusted
 }
 
+const getCoordinatesIndex = (coordsArray, current) => {
+  let coordsIndex = -1
+  if (coordsArray.length) {
+    coordsIndex = coordsArray.findIndex(stop => {
+      return stop.coordinates[0] === (current.coordinates || current)[0] && stop.coordinates[1] === (current.coordinates || current)[1]
+    })
+  }
+  return coordsIndex
+}
+
 module.exports = {
   sleep: sleepTimer,
   computePath: computeTravelPath,
@@ -188,5 +198,6 @@ module.exports = {
   computeDistance: computeDistance,
   computeDistanceKm: function (from, to) {
     return computeDistance(from, to) * EARTH_RADIUS_KM
-  }
+  },
+  coordinatesIndex: getCoordinatesIndex
 }

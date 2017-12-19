@@ -19,16 +19,30 @@ const routeInfo = (route, stops) => {
   // coordinates: [<coordinates>],
   // stops:  [<stops>],
   // distance: <number>
+  let stopDistances = new Array(stops.length)
   let distance = 0
+  let sd = 0
+  let d = 0
+  let index = -1
   for (let i = 0; i < route.length - 1; i++) {
-    distance += util.computeDistanceKm(route[i], route[i + 1])
+    d = util.computeDistanceKm(route[i], route[i + 1])
+    distance += d
+    index = util.coordinatesIndex(stops, route[i + 1])
+    if (index > -1) {
+      stopDistances[index] = sd
+      console.log(`index: ${index}, dist: ${sd}`)
+      sd = 0
+    } else {
+      sd += d
+    }
   }
 
   return {
     'type': 'route_info',
     'coordinates': route,
     'stops': stops,
-    'distance': distance
+    'distance': distance,
+    'stopDistances': stopDistances
   }
 }
 

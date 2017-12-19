@@ -179,7 +179,7 @@ const runSimStep = (step, run) => {
     let stopIndex = -1
 
     if (ollistops.length) {
-      stopIndex = getStopIndex(current)
+      stopIndex = util.coordinatesIndex(ollistops, current)
 
       if (stopIndex > -1) {
         if (stopIndex + 1 >= ollistops.length) {
@@ -246,16 +246,6 @@ const computeTripPath = (origin, dest) => {
   }
 
   return tripPath
-}
-
-const getStopIndex = (current) => {
-  let stopIndex = -1
-  if (ollistops.length) {
-    stopIndex = ollistops.findIndex(stop => {
-      return stop.coordinates[0] === (current.coordinates || current)[0] && stop.coordinates[1] === (current.coordinates || current)[1]
-    })
-  }
-  return stopIndex
 }
 
 const getRouteIndex = (current) => {
