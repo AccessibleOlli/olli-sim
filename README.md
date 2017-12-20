@@ -25,7 +25,6 @@ Simulator should start and you should see events in the console.log. If an OlliR
 
 The following settings can be configured in the `.env` file:
 
-* `simulator_target_websocket` - TCP connection (URL and port) to send events to (default: `127.0.0.1:8000`)
 * `simulator_target_cloudant` -  Cloudant/CouchDB database url (fully qualified) to send events to (e.g, `http://username:password@127.0.0.1:5984/ollilocation`)
 * `simulator_route_source` - URL or file path to JSON file containing the route GeoJSON (default: `data/route.json`)
 * `simulator_stops_source` - URL or file path to JSON file containing the stops GeoJSON (default: `data/stops.json`)
@@ -78,6 +77,8 @@ The simulator sends events to the configured websocket and/or Cloudant/CouchDB d
     'from_coordinates': [<lng>, <lat>],
     'to_coordinates': [<lng>, <lat>],
     'distance': <trip distance>,
+    'from_stop': <stop>,
+    'to_stop': <stop>,
     'ts': <event time in ms>
 }
 ```
@@ -90,6 +91,8 @@ The simulator sends events to the configured websocket and/or Cloudant/CouchDB d
     'from_coordinates': [<lng>, <lat>],
     'to_coordinates': [<lng>, <lat>],
     'distance': <trip distance>,
+    'from_stop': <stop>,
+    'to_stop': <stop>,
     'ts': <event time in ms>
 }
 ```

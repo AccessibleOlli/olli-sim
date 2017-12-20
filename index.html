@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Olli Movement Simulator controller</title>
+</head>
+<body>
+    <h1>Olli Movement Simulator controller</h1>
+
+    <div>
+        <button id="startBtn" type="button" onclick="toggleStart()" disabled>Start</button>
+        <button id="pauseBtn" type="button" onclick="togglePause()" disabled>Pause</button>
+    </div>
+
+    <div style="margin-top: 25px;">
+        <span id="msg"> </span>
+    </div>
+
+    <div style="margin-top: 25px;">
+        <textarea id="textBox" style="height: 228px; width: 95%; max-width: 1000px;"></textarea>
+    </div>
+
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <script>
+        var startBtn = document.getElementById("startBtn")
+        var pauseBtn = document.getElementById("pauseBtn")
+        var textBox = document.getElementById("textBox")
+        var msgNode = document.getElementById("msg")
+        var socket = null
+
+        function addText(msg) {
+            textBox.value += (msg.data || msg) + '\r\n\r\n'
+            textBox.scrollTop = textBox.scrollHeight
+        }
+
+        function setMsg(msg) {
+            msgNode.innerText = (msg.data || msg)
+        }
+
+        function getInfo() {
+            axios.get('/info')
+                .then(response => {
+                    console.log(response)
+                    var d = response.data || response
+                    addText('config: ' + JSON.stringify(d.config))
+                    addText('status: started=' + d.started + ', paused=' + d.paused)
+                    startBtn.innerText = d.hasOwnProperty('started') && d.started ? 'Stop' : 'Start'
+                    pauseBtn.innerText = d.hasOwnProperty('paused') && d.paused ? 'Continue' : 'Pause'
+                    pauseBtn.disabled = d.hasOwnProperty('started') && !d.started ? true : false
+
+                    if (d.started) {
+                        websocketConnect()
+                    }
+                    else {
+                        setTimeout(getInfo, 5000)
+                    }
+                })
+        }
+
+        function toggleStart() {
+            startBtn.disabled = true
+            if (startBtn.innerText === 'Start') {
+                axios.get('/start')
+                    .then(response => {
+                        console.log(response)
+                        startBtn.innerText = 'Stop'
+                        pauseBtn.innerText = 'Pause'
+                        startBtn.disabled = false
+                        pauseBtn.disabled = false
+                        setMsg(response)
+
+                        if (!socket) {
+                            websocketConnect()
+                        }
+                    })
+                
+            } else {
+                axios.get('/stop')
+                    .then(response => {
+                        console.log(response)
+                        startBtn.innerText = 'Start'
+                        startBtn.disabled = false
+                        pauseBtn.disabled = true
+                        setMsg(response)
+
+                        if (socket) {
+                            socket.close()
+                            socket = null
+                        }
+                    })
+            }
+        }
+        
+        function togglePause() {
+            pauseBtn.disabled = true
+            if (pauseBtn.innerText === 'Pause') {
+                axios.get('/pause')
+                    .then(response => {
+                        console.log(response)
+                        pauseBtn.innerText = 'Continue'
+                        pauseBtn.disabled = false
+                        setMsg(response)
+                    })
+                
+            } else {
+                axios.get('/continue')
+                    .then(response => {
+                        console.log(response)
+                        pauseBtn.innerText = 'Pause'
+                        pauseBtn.disabled = false
+                        setMsg(response)
+                    })
+            }
+        }
+
+        function websocketConnect() {
+            console.log('Creating socket')
+            socket = new WebSocket(window.location.protocol.replace('http', 'ws') + '//' + window.location.host)
+
+            socket.onopen = function() {
+                console.log('Socket opened')
+            }
+
+            socket.onclose = function() {
+                console.log('Socket closed')
+                socket = null
+                setTimeout(getInfo, 5000)
+            }
+
+            socket.onerror = function(err) {
+                console.log('Socket error', err)
+                socket = null
+                setTimeout(getInfo, 5000)
+            }
+
+            socket.onmessage = function(message) {
+                // if (pauseBtn.innerText === 'Pause') {
+                    addText(message.data)
+                // }
+            }
+        }
+
+        startBtn.disabled = false; 
+        pauseBtn.disabled = true;
+        textBox.value = ''
+        getInfo()
+    </script>
+</body>
+</html>
