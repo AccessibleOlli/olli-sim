@@ -53,6 +53,9 @@
                     if (d.started) {
                         websocketConnect()
                     }
+                    else {
+                        setTimeout(getInfo, 5000)
+                    }
                 })
         }
 
@@ -122,10 +125,14 @@
 
             socket.onclose = function() {
                 console.log('Socket closed')
+                socket = null
+                setTimeout(getInfo, 5000)
             }
 
             socket.onerror = function(err) {
                 console.log('Socket error', err)
+                socket = null
+                setTimeout(getInfo, 5000)
             }
 
             socket.onmessage = function(message) {

@@ -1,11 +1,26 @@
 // require('dotenv').config()
-const server = require('http').createServer()
+const http = require('http')
 const env = require('cfenv').getAppEnv()
 const path = require('path')
 const express = require('express')
 const app = express()
+const request = require('request')
 
 const simulator = require('./simulator.js')
+const server = http.createServer((req,res) => {
+	res.setHeader('Access-Control-Allow-Origin', '*');
+	res.setHeader('Access-Control-Request-Method', '*');
+	res.setHeader('Access-Control-Allow-Methods', 'OPTIONS, GET');
+	res.setHeader('Access-Control-Allow-Headers', '*');
+	if ( req.method === 'OPTIONS' ) {
+		res.writeHead(200);
+		res.end();
+		return;
+	}
+})
+
+// weather_url should be format of https://username:password@twcservice.mybluemix.net
+const weatherURL = process.env['simulator_weather_url'];
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '/index.html'))
@@ -64,6 +79,18 @@ app.get('/info', (req, res) => {
       console.error(err)
       res.status(500).send(`Error getting Simulator info: ${err.message || err}`)
     })
+})
+
+app.get('/weather/:lat/:lon', (req, res) => {
+  if (weatherURL) {
+    const url = weatherURL + `/api/weather/v1/geocode/${req.params.lat}/${req.params.lon}/observations.json?units=e&language=en-US`
+    request(url, (err, response, body) => {
+      console.log(body)
+      res.send(body)
+    })
+  } else {
+    res.status(500).send('Weather Service not configured')
+  }
 })
 
 server.on('request', app)

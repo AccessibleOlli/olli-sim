@@ -17,6 +17,7 @@ let config = {
   STOPS_SRC: process.env['simulator_stops_source'] || 'data/stops.json'
 }
 
+let routeinfo = null
 let olliroute = null
 let ollistops = []
 let routepath = []
@@ -51,7 +52,8 @@ const info = () => {
     paused: paused,
     step: currentStep,
     run: currentRun,
-    config: params
+    config: params,
+    route: routeinfo
   }
 
   return Promise.resolve(info)
@@ -70,6 +72,7 @@ const begin = (options, server) => {
       .then(geojson => {
         ollistops = geojson.stops
         olliroute = geojson.route
+        routeinfo = simevents.routeInfo(olliroute, ollistops)
 
         return simtarget.init(config, server)
       })
