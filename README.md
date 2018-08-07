@@ -1,6 +1,6 @@
 # Olli Rochester Simulator
 
-Simulator for Olli Rochester demo
+Autonomous but simulator for Olli Rochester demo. Simulates the moving locations of buses around a loop in the Mayo Clinic area of Rochester, MN.
 
 ## Prerequisites
 
@@ -19,7 +19,7 @@ Simulator for Olli Rochester demo
 
     `npm start`
 
-Simulator should start and you should see events in the console.log. If an OlliRevisited app is configured with same Cloudant database or is listening on the websocket connection, you should see Olli move on the map
+Simulator should start and you should see events in the console.log. If an AccessibleOlli app is configured with same CouchDB/Cloudant database or is listening on the websocket connection, you should see Olli buses move on the map.
 
 ## Configuration
 
