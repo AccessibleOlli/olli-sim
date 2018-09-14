@@ -20,7 +20,9 @@ const server = http.createServer((req,res) => {
 })
 
 // weather_url should be format of https://username:password@twcservice.mybluemix.net
-const weatherURL = process.env['simulator_weather_url'];
+// const weatherURL = process.env['simulator_weather_url'];
+const weatherAPIKey = process.env['simulator_weather_api_key'];
+const weatherURL = ''
 
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, '/index.html'))
@@ -82,14 +84,15 @@ app.get('/info', (req, res) => {
 })
 
 app.get('/weather/:lat/:lon', (req, res) => {
-  if (weatherURL) {
-    const url = weatherURL + `/api/weather/v1/geocode/${req.params.lat}/${req.params.lon}/observations.json?units=e&language=en-US`
+  if (weatherAPIKey) {
+    const url = `https://api.weather.com/v1/geocode/${req.params.lat}/${req.params.lon}/observations.json?units=e&language=en-US&apiKey=` + weatherAPIKey
+    // const url = weatherURL + `/api/weather/v1/geocode/${req.params.lat}/${req.params.lon}/observations.json?units=e&language=en-US`
     request(url, (err, response, body) => {
       console.log(body)
       res.send(body)
     })
   } else {
-    res.status(500).send('Weather Service not configured')
+    res.status(500).send('Weather API Key not configured')
   }
 })
 
