@@ -1,4 +1,4 @@
-const cloudant = require('cloudant')
+const cloudant = require('@cloudant/cloudant')
 const WebSocket = require('ws')
 
 let db = null
